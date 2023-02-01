@@ -9,13 +9,17 @@ export class CreateMetricDto {
   unit: string;
 
   @ApiProperty({
-    default: '',
+    default: 0,
   })
-  value: string;
+  value: number;
 
   @ApiProperty({
     enum: MetricType,
     default: MetricType.DISTANCE,
   })
   type: string;
+
+  mValue: number;
+
+  date: Date;
 }

@@ -17,6 +17,9 @@ export class Metric {
 
   @Prop()
   date: Date;
+
+  @Prop()
+  mValue: number;
 }
 
 export const MetricSchema = SchemaFactory.createForClass(Metric);

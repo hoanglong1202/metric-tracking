@@ -1,16 +1,22 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
   Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
+  Query,
 } from '@nestjs/common';
-import { MetricService } from './metric.service';
-import { CreateMetricDto } from './dto/create-metric.dto';
-import { UpdateMetricDto } from './dto/update-metric.dto';
 import { ApiTags } from '@nestjs/swagger';
+import {
+  MetricType,
+  MetricUnit,
+  MetricUnitDistance,
+  MetricUnitTemperature,
+} from 'src/constants';
+import { ConvertToCelsius, ConvertToCentimeter } from 'src/util';
+import { CreateMetricDto } from './dto/create-metric.dto';
+import { FilterMetricDto } from './dto/filter-metric.dto';
+import { MetricService } from './metric.service';
 
 @Controller('metric')
 @ApiTags('Metric')
@@ -19,26 +25,43 @@ export class MetricController {
 
   @Post()
   create(@Body() createMetricDto: CreateMetricDto) {
+    const { value, unit, type } = createMetricDto;
+    if (
+      !value ||
+      !(<any>Object).values(MetricUnit).includes(unit) ||
+      !(<any>Object).values(MetricType).includes(type)
+    ) {
+      throw new BadRequestException('Wrong value, type or unit');
+    }
+
+    if (
+      type === MetricType.DISTANCE &&
+      (<any>Object).values(MetricUnitDistance).includes(unit) &&
+      value >= 0
+    ) {
+      createMetricDto.mValue = ConvertToCentimeter(value, unit);
+    } else if (
+      type === MetricType.TEMPERATURE &&
+      (<any>Object).values(MetricUnitTemperature).includes(unit)
+    ) {
+      createMetricDto.mValue = ConvertToCelsius(value, unit);
+    } else {
+      throw new BadRequestException(
+        `${unit} is of ${type} is not valid with ${value}`,
+      );
+    }
+
+    createMetricDto.date = new Date();
     return this.metricService.create(createMetricDto);
   }
 
   @Get()
-  findAll() {
+  findAll(@Query() filterMetricDto: FilterMetricDto) {
     return this.metricService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.metricService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateMetricDto: UpdateMetricDto) {
-    return this.metricService.update(+id, updateMetricDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.metricService.remove(+id);
+  @Get('chart')
+  findChart() {
+    return this.metricService.findAll();
   }
 }
