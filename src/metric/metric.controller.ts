@@ -13,7 +13,11 @@ import {
   MetricUnitDistance,
   MetricUnitTemperature,
 } from 'src/constants';
-import { ConvertToCelsius, ConvertToCentimeter } from 'src/util';
+import {
+  ConvertToCelsius,
+  ConvertToCentimeter,
+  MetricTracking,
+} from 'src/util';
 import { CreateMetricDto } from './dto/create-metric.dto';
 import { FilterMetricDto } from './dto/filter-metric.dto';
 import { MetricService } from './metric.service';
@@ -27,7 +31,6 @@ export class MetricController {
   create(@Body() createMetricDto: CreateMetricDto) {
     const { value, unit, type } = createMetricDto;
     if (
-      !value ||
       !(<any>Object).values(MetricUnit).includes(unit) ||
       !(<any>Object).values(MetricType).includes(type)
     ) {
@@ -56,12 +59,18 @@ export class MetricController {
   }
 
   @Get()
-  findAll(@Query() filterMetricDto: FilterMetricDto) {
-    return this.metricService.findAll();
-  }
+  async findAll(@Query() filterMetricDto: FilterMetricDto) {
+    const { type, unit } = filterMetricDto;
+    if (unit) {
+      const isValidUnit = MetricTracking(type, unit);
 
-  @Get('chart')
-  findChart() {
-    return this.metricService.findAll();
+      if (!isValidUnit) {
+        throw new BadRequestException(`${unit} is of ${type} is not valid`);
+      }
+    }
+
+    const result = await this.metricService.findAll(filterMetricDto);
+
+    return result;
   }
 }

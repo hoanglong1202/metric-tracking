@@ -15,10 +15,4 @@ export class FilterMetricDto {
     default: 'ALL',
   })
   type: string;
-
-  @ApiPropertyOptional({
-    enum: ['ASC', 'DESC'],
-    default: 'DESC',
-  })
-  sortDirection?: string;
 }

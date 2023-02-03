@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { initialOptions } from 'src/util';
 import { CreateMetricDto } from './dto/create-metric.dto';
+import { FilterMetricDto } from './dto/filter-metric.dto';
 import { Metric, MetricDocument } from './entities/metric.entity';
 
 @Injectable()
@@ -15,7 +17,22 @@ export class MetricService {
     return createdCat.save();
   }
 
-  findAll() {
-    return this.metricModel.find().exec();
+  async findAll(filterMetricDto: FilterMetricDto) {
+    const options = initialOptions(filterMetricDto);
+    const { limit, skip, page, search } = options;
+
+    const [rows, total] = await Promise.all([
+      this.metricModel.find(search).skip(skip).limit(limit).exec(),
+      this.metricModel.countDocuments(search).exec(),
+    ]);
+
+    return {
+      rows,
+      pagination: {
+        total,
+        limit,
+        page,
+      },
+    };
   }
 }
