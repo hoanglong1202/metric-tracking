@@ -5,8 +5,8 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = new DocumentBuilder()
-    .setTitle('Fortune POS')
-    .setDescription('The Fortune POS APIs description')
+    .setTitle('Metric Tracking')
+    .setDescription('The Metric Tracking APIs description')
     .addBearerAuth()
     .setVersion('1.0')
     .build();
