@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { MetricUnit } from 'src/constants';
 
 export class FilterMetricDto {
   @ApiPropertyOptional()
@@ -7,7 +8,10 @@ export class FilterMetricDto {
   @ApiPropertyOptional()
   limit?: number;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({
+    enum: MetricUnit,
+    default: '',
+  })
   unit?: string;
 
   @ApiProperty({

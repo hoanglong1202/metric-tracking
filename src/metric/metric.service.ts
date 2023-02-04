@@ -21,13 +21,13 @@ export class MetricService {
     const options = initialOptions(filterMetricDto);
     const { limit, skip, page, search } = options;
 
-    const [rows, total] = await Promise.all([
+    const [data, total] = await Promise.all([
       this.metricModel.find(search).skip(skip).limit(limit).exec(),
       this.metricModel.countDocuments(search).exec(),
     ]);
 
     return {
-      rows,
+      data,
       pagination: {
         total,
         limit,

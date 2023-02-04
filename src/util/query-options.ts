@@ -15,8 +15,8 @@ interface ISearch {
 }
 
 export const initialOptions = (query: IQuery) => {
-  const page = query.page || 1;
-  const limit = query.limit || 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
   const skip = limit * (page - 1);
   const sortType = Number(query.sortType) || -1;
   const sortBy = query.sortBy || 'createdAt';

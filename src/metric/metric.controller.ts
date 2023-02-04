@@ -8,14 +8,8 @@ import {
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
-  MetricType,
-  MetricUnit,
-  MetricUnitDistance,
-  MetricUnitTemperature,
-} from 'src/constants';
-import {
-  ConvertToCelsius,
-  ConvertToCentimeter,
+  ConvertValueToUnit,
+  MetricMinValueConverter,
   MetricTracking,
 } from 'src/util';
 import { CreateMetricDto } from './dto/create-metric.dto';
@@ -30,29 +24,16 @@ export class MetricController {
   @Post()
   create(@Body() createMetricDto: CreateMetricDto) {
     const { value, unit, type } = createMetricDto;
-    if (
-      !(<any>Object).values(MetricUnit).includes(unit) ||
-      !(<any>Object).values(MetricType).includes(type)
-    ) {
-      throw new BadRequestException('Wrong value, type or unit');
-    }
+    const isValidUnit = MetricTracking(type, unit);
+    const valueConverter = MetricMinValueConverter(value, unit, type);
 
-    if (
-      type === MetricType.DISTANCE &&
-      (<any>Object).values(MetricUnitDistance).includes(unit) &&
-      value >= 0
-    ) {
-      createMetricDto.mValue = ConvertToCentimeter(value, unit);
-    } else if (
-      type === MetricType.TEMPERATURE &&
-      (<any>Object).values(MetricUnitTemperature).includes(unit)
-    ) {
-      createMetricDto.mValue = ConvertToCelsius(value, unit);
-    } else {
+    if (!isValidUnit.isValid || !valueConverter.isValid) {
       throw new BadRequestException(
         `${unit} is of ${type} is not valid with ${value}`,
       );
     }
+
+    createMetricDto.mValue = valueConverter.mValue;
 
     createMetricDto.date = new Date();
     return this.metricService.create(createMetricDto);
@@ -61,15 +42,31 @@ export class MetricController {
   @Get()
   async findAll(@Query() filterMetricDto: FilterMetricDto) {
     const { type, unit } = filterMetricDto;
+    const result = await this.metricService.findAll(filterMetricDto);
+
     if (unit) {
+      const temp = result.data;
       const isValidUnit = MetricTracking(type, unit);
 
-      if (!isValidUnit) {
-        throw new BadRequestException(`${unit} is of ${type} is not valid`);
+      if (!isValidUnit.isValid) {
+        result.data = [];
+        result.pagination.total = 0;
+        return {
+          message: `${unit} is of ${type} is not valid`,
+          result,
+        };
       }
-    }
 
-    const result = await this.metricService.findAll(filterMetricDto);
+      result.data = temp?.map((element) => {
+        const { mValue } = element;
+        const convertedValue = ConvertValueToUnit(type, unit, mValue);
+
+        element.value = convertedValue.value;
+        element.unit = convertedValue.unit;
+
+        return element;
+      });
+    }
 
     return result;
   }
