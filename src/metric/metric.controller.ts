@@ -9,6 +9,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import {
   ConvertValueToUnit,
+  FormatMetricArr,
   MetricMinValueConverter,
   MetricTracking,
 } from 'src/util';
@@ -32,6 +33,10 @@ export class MetricController {
       throw new BadRequestException(
         `${unit} is of ${type} is not valid with ${value}`,
       );
+    }
+
+    if (value >= 1_000_000) {
+      throw new BadRequestException(`${value} is out of range`);
     }
 
     createMetricDto.mValue = valueConverter.mValue;
@@ -68,7 +73,7 @@ export class MetricController {
         return element;
       });
     }
-
+    result.data = FormatMetricArr(result.data);
     return result;
   }
 
@@ -95,6 +100,8 @@ export class MetricController {
       return element;
     });
 
-    return result;
+    return {
+      data: FormatMetricArr(result.data),
+    };
   }
 }

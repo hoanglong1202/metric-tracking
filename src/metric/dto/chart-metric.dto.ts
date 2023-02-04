@@ -15,8 +15,12 @@ export class ChartMetricDto {
   type: string;
 
   @ApiProperty({
-    enum: ['CURRENT_MONTH', 'ALL'],
-    default: 'CURRENT_MONTH',
+    default: new Date(),
   })
-  time: string;
+  fromDate: Date;
+
+  @ApiProperty({
+    default: new Date(),
+  })
+  toDate: Date;
 }

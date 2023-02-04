@@ -111,3 +111,11 @@ export const ConvertValueToUnit = (
 
   return result;
 };
+
+export const FormatMetricArr = (arr) => {
+  const result = arr.map((element) => {
+    const { _id, unit, value, type, date } = element;
+    return { _id, unit, value, type, date };
+  });
+  return result;
+};

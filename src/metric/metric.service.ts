@@ -38,16 +38,12 @@ export class MetricService {
   }
 
   async findChartData(chartMetricDto: ChartMetricDto) {
-    const { time, type } = chartMetricDto;
-    const current = new Date();
-    const currentMonth = current.getMonth();
-    const currentYear = current.getFullYear();
-    const date = new Date(currentYear, currentMonth, 1, 0, 0, 0, 0);
+    const { fromDate, toDate, type } = chartMetricDto;
 
     const query: any = { type };
 
-    if (time === 'CURRENT_MONTH') {
-      query.date = { $gte: date };
+    if (fromDate && toDate) {
+      query.date = { $gte: fromDate, $lt: toDate };
     }
 
     const data = await this.metricModel.find(query).sort({ date: -1 }).exec();
