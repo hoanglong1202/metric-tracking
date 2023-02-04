@@ -79,7 +79,7 @@ export class MetricController {
     if (!isValidUnit.isValid) {
       return {
         data: [],
-        message: `${unit} is of ${type} is not valid`,
+        message: `${unit} is of ${type} is not valid!`,
       };
     }
 
