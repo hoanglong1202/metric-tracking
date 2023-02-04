@@ -12,6 +12,7 @@ import {
   MetricMinValueConverter,
   MetricTracking,
 } from 'src/util';
+import { ChartMetricDto } from './dto/chart-metric.dto';
 import { CreateMetricDto } from './dto/create-metric.dto';
 import { FilterMetricDto } from './dto/filter-metric.dto';
 import { MetricService } from './metric.service';
@@ -67,6 +68,32 @@ export class MetricController {
         return element;
       });
     }
+
+    return result;
+  }
+
+  @Get('chart')
+  async findChartData(@Query() chartMetricDto: ChartMetricDto) {
+    const { type, unit } = chartMetricDto;
+    const isValidUnit = MetricTracking(type, unit);
+    if (!isValidUnit.isValid) {
+      return {
+        data: [],
+        message: `${unit} is of ${type} is not valid`,
+      };
+    }
+
+    const result = await this.metricService.findChartData(chartMetricDto);
+    const temp = result.data;
+    result.data = temp?.map((element) => {
+      const { mValue } = element;
+      const convertedValue = ConvertValueToUnit(type, unit, mValue);
+
+      element.value = convertedValue.value;
+      element.unit = convertedValue.unit;
+
+      return element;
+    });
 
     return result;
   }
